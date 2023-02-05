@@ -1,0 +1,36 @@
+---
+- name: Install Apache, set timezone and display HTML page on EC2 instances
+  hosts: all
+  become: yes
+  remote_user: ubuntu
+
+  tasks:
+    - name: Install Apache
+      apt: name=apache2 update_cache=yes state=present
+
+    - name: Set timezone to Africa/Lagos
+      timezone: name=Africa/Lagos
+
+    - name: Get instance timezone
+      shell: echo $(timedatectl | grep "Time zone")
+      register: timezone
+
+    - name: Get instance IP address
+      shell: hostname -I
+      register: ip_address
+
+    - name: Configure HTML page to display instance timezone and IP address
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+            <head>
+              <title>My EC2 Instance</title>
+            </head>
+            <body>
+              <h1>Instance Information</h1>
+              <p>{{ timezone.stdout }}</p>
+              <p>IP Address: {{ ip_address.stdout }}</p>
+              <p>Deployed by DevOps Engineer Abdul Barri</p>
+            </body>
+          </html>
